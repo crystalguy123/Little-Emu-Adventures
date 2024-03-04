@@ -1,5 +1,7 @@
 import pygame
 import player
+import wallblock
+import loadlevel, translateposition
 
 pygame.init()
 pygame.display.set_caption("LITTLE MAN ADVENTURES")
@@ -12,13 +14,15 @@ centerY = screen.get_height() / 2
 center = (centerX, centerY)
 
 #---PLAYER VARIABLES---
-emuImg = pygame.image.load("emu.png")
+emuImg = pygame.image.load("emuPixelized.png")
 #scale of the player, in pixels
 player_scale = (80, 80)
 #move speed (how much it moves (default is one grid))
 player_move_speed = player_scale[0]
 #starting position (top left)
-starting_position = 320, 320 - 4  # "- 4" is to center it
+startingPositionList = loadlevel.load(r"LevelOne.txt")[0]
+starting_position = [(translateposition.translate(startingPositionList[0])[0] + 4) * 80, (translateposition.translate(startingPositionList[1])[1] + 4) * 80]
+print(starting_position)
 player = player.Player(emuImg, player_move_speed, player_scale, starting_position)
 player.sprite = pygame.transform.flip(player.sprite, True, False)
 #---GRID VARIABLES---
@@ -32,6 +36,22 @@ grid_cell_size = 80
 grid_color = (255, 255, 255)
 # thickness of the lines
 grid_thickness = 3
+
+#open the file "LevelOne" as "read and write"
+#level_one_txt = open(r"LevelOne.txt", "r+")
+#loadlevel.load(r"LevelOne.txt")
+walls = []
+blockImg = pygame.image.load("block.png")
+wallPositionList = loadlevel.load(r"LevelOne.txt")[1]
+for x in wallPositionList:
+    walls.append(wallblock.Wall_Block(blockImg, translateposition.translate(x)))
+
+
+# walls = []
+# for x in range(5):
+#     walls.append(wallblock.Wall_Block(blockImg, (200 + (x * 80), 200)))
+# #test_block = wallblock.Wall_Block(blockImg, (200, 200))
+
 
 while running:
 
@@ -49,7 +69,6 @@ while running:
                 player.move("south")
             if event.key == pygame.K_d:
                 player.move("east")
-            #print((player.playerRect.x, player.playerRect.y + 4))
     # wipe previous frame
     screen.fill("pink")
 
@@ -63,6 +82,9 @@ while running:
 
     # blit some stuff
     screen.blit(player.sprite, player.playerRect)
+    #screen.blit(test_block.sprite, test_block.blockRect)
+    for x in walls:
+        screen.blit(x.sprite, x.blockRect)
     # draw
     pygame.display.flip()
     # fps

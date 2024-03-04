@@ -22,7 +22,7 @@ class Player:
             case "north":
                 if self.position_in_grid[1] >= 1:
                     self.playerRect.y -= self.speed
-                    self.previous = "north"
+                    #self.previous = "north"
             case "east":
                 if self.position_in_grid[0] <= 14:
                     if not self.previous == "east":
@@ -32,7 +32,7 @@ class Player:
             case "south":
                 if self.position_in_grid[1] <= 7:
                     self.playerRect.y += self.speed
-                    self.previous = "south"
+                    #self.previous = "south"
             case "west":
                 if self.position_in_grid[0] >= 1:
                     if not self.previous == "west":
