@@ -13,19 +13,21 @@ centerX = screen.get_width() / 2
 centerY = screen.get_height() / 2
 center = (centerX, centerY)
 
-#---PLAYER VARIABLES---
+# ---PLAYER VARIABLES---
+#image
 emuImg = pygame.image.load("emuPixelized.png")
-#scale of the player, in pixels
+# scale of the player, in pixels
 player_scale = (80, 80)
-#move speed (how much it moves (default is one grid))
+# move speed (how much it moves (default is one grid))
 player_move_speed = player_scale[0]
-#starting position (top left)
+# starting position, as a list
 startingPositionList = loadlevel.load(r"LevelOne.txt")[0]
-starting_position = [(translateposition.translate(startingPositionList[0])[0] + 4) * 80, (translateposition.translate(startingPositionList[1])[1] + 4) * 80]
-print(starting_position)
+#translate the list's numbers into coordinates
+starting_position = [(translateposition.translate(startingPositionList[0])[0] + 4) * 80,
+                     (translateposition.translate(startingPositionList[1])[1] + 4) * 80]
+#initialize the player object
 player = player.Player(emuImg, player_move_speed, player_scale, starting_position)
-player.sprite = pygame.transform.flip(player.sprite, True, False)
-#---GRID VARIABLES---
+# ---GRID VARIABLES---
 # amount of left and right cells
 grid_x_count = 9
 # amount of up and down cells
@@ -37,9 +39,6 @@ grid_color = (255, 255, 255)
 # thickness of the lines
 grid_thickness = 3
 
-#open the file "LevelOne" as "read and write"
-#level_one_txt = open(r"LevelOne.txt", "r+")
-#loadlevel.load(r"LevelOne.txt")
 walls = []
 blockImg = pygame.image.load("block.png")
 wallPositionList = loadlevel.load(r"LevelOne.txt")[1]
@@ -47,28 +46,59 @@ for x in wallPositionList:
     walls.append(wallblock.Wall_Block(blockImg, translateposition.translate(x)))
 
 
-# walls = []
-# for x in range(5):
-#     walls.append(wallblock.Wall_Block(blockImg, (200 + (x * 80), 200)))
-# #test_block = wallblock.Wall_Block(blockImg, (200, 200))
+def checkCollision(direction):
+    #reset the player bounding box to the player's position
+    playerBoundingBox = pygame.Rect(player.playerRect)
+    match direction:
+        case "north":
+            #move bounding box up
+            playerBoundingBox.y -= 80
+        case "east":
+            #move bounding box right
+            playerBoundingBox.x += 80
+        case "south":
+            #move bounding box down
+            playerBoundingBox.y += 80
+        case "west":
+            #move bounding box left
+            playerBoundingBox.x -= 80
+
+    #---CHECK EVERY WALL FOR COLLISION---
+    for wall in walls:
+        collide = pygame.Rect.colliderect(wall.blockRect, playerBoundingBox)
+        if collide:
+            #if colliding, return True
+            return True
+    #if no collision is happening, return False
+    return False
 
 
 while running:
-
     for event in pygame.event.get():
+        #if hit the x
         if event.type == pygame.QUIT:
             pygame.quit()
             running = False
             exit()
+        #look for key presses
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                player.move("north")
-            if event.key == pygame.K_a:
-                player.move("west")
-            if event.key == pygame.K_s:
-                player.move("south")
-            if event.key == pygame.K_d:
-                player.move("east")
+                if event.key == pygame.K_w:
+                    #if not going to collide above, then move up
+                    if not checkCollision("north"):
+                        player.move("north")
+                if event.key == pygame.K_a:
+                    # if not going to collide to left, then move left
+                    if not checkCollision("west"):
+                        player.move("west")
+                if event.key == pygame.K_s:
+                    # if not going to collide below, then move down
+                    if not checkCollision("south"):
+                        player.move("south")
+                if event.key == pygame.K_d:
+                    # if not going to collide to right, then move right
+                    if not checkCollision("east"):
+                        player.move("east")
+
     # wipe previous frame
     screen.fill("pink")
 
@@ -82,9 +112,10 @@ while running:
 
     # blit some stuff
     screen.blit(player.sprite, player.playerRect)
-    #screen.blit(test_block.sprite, test_block.blockRect)
+    #blit all the walls
     for x in walls:
         screen.blit(x.sprite, x.blockRect)
+
     # draw
     pygame.display.flip()
     # fps
